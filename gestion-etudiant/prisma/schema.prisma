@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String
+  role      String    @default("student")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Student {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  studentId String    @unique
+  email     String    @unique
+  phone     String?
+  address   String?
+  year      Int       @default(1)
+  level     String    @default("L1")
+  modules   Module[]
+  grades    Grade[]
+  attendance Attendance[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Module {
+  id        Int       @id @default(autoincrement())
+  code      String    @unique
+  name      String
+  credits   Int       @default(3)
+  semester  Int
+  level     String
+  students  Student[]
+  grades    Grade[]
+  attendance Attendance[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Grade {
+  id        Int       @id @default(autoincrement())
+  studentId Int
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  moduleId  Int
+  module    Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  score     Float
+  exam      Float?
+  cc        Float?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([studentId, moduleId])
+}
+
+model Attendance {
+  id        Int       @id @default(autoincrement())
+  studentId Int
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  moduleId  Int
+  module    Module    @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  date      DateTime
+  status    String    @default("present") // present, absent, excused
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
